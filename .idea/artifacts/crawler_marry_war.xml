@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="crawler-marry:war">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <root id="archive" name="crawler-marry-1.0-SNAPSHOT.war">
+      <element id="artifact" artifact-name="crawler-marry:war exploded" />
+    </root>
+  </artifact>
+</component>
