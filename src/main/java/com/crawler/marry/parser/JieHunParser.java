@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by finup on 2017/2/20.
@@ -71,9 +72,18 @@ public class JieHunParser extends Parser {
             if(e.getElementsByClass("average_price").size() > 0){
                 marryInfo.setPrice(e.getElementsByClass("average_price").text().replace("￥", ""));
             }
+            marryInfo.setMarryId(UUID.randomUUID().toString());
         }
         return marryInfo;
     }
+
+
+    @Override
+    public void parserComment(String result) {
+
+        super.parserComment(result);
+    }
+
 
 
     public static void main(String[] args) throws IOException {

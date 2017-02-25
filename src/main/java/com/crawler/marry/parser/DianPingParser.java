@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,6 +47,7 @@ public class DianPingParser extends Parser {
         Document document = Jsoup.parse(result);
         Element ul_element = document.getElementsByClass("shop-list").get(0);
         Elements lis_element = ul_element.getElementsByTag("li");
+
         for (Element li : lis_element) {
             try {
                 if (!li.html().contains("top")){
@@ -69,6 +71,7 @@ public class DianPingParser extends Parser {
             marryInfo.setLevel(element.getElementsByClass("irr-star50").attr("title"));//级别
             marryInfo.setScope(element.getElementsByClass("area-list").text());// 区域
             marryInfo.setPrice(element.getElementsByClass("price").text());//价格
+            marryInfo.setMarryId(UUID.randomUUID().toString());
 
             String html = element.html();
             Pattern pattern = Pattern.compile(reg);
@@ -81,6 +84,13 @@ public class DianPingParser extends Parser {
         return marryInfo;
     }
 
+
+    @Override
+    public void parserComment(String result) {
+
+        super.parserComment(result);
+    }
+
     public static void main(String[] args) throws IOException {
 //        CloseableHttpClient client = HttpClientBuilder.create().build();
 //        String url = "http://www.dianping.com/search/category/2/55/g163";
@@ -90,6 +100,8 @@ public class DianPingParser extends Parser {
 //        DianPingParser pingParser = new DianPingParser();
 //        String link = pingParser.parserNext(result);
 //        pingParser.accessNext(HOST+link);
+
+        System.out.println(UUID.randomUUID().toString());
 
         ThreadUtils.queue_dianping.offer("123");
         ThreadUtils.queue_dianping.offer("232323");

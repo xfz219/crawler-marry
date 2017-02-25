@@ -16,6 +16,10 @@ import java.io.IOException;
 public abstract class Parser {
     private static final Logger LOG  = LoggerFactory.getLogger(Parser.class);
     protected CloseableHttpClient client ;
+    // 评论url
+    public   String comment_url = "";
+    // 商标url
+    public String trademark_url ="";
 
     public Parser() {
         System.out.println("parser client");
@@ -29,6 +33,7 @@ public abstract class Parser {
             HttpGet get = new HttpGet(url);
             String result = excu4Str(client.execute(get));
             this.parser(result);
+
             if (result.contains("下一页")) {
                 url = Host + parserNext(result);
                 System.out.println(url);
@@ -41,11 +46,25 @@ public abstract class Parser {
         return null;
     }
 
+    public void process(){
+
+    }
+
+    public void parserComment(String result){
+
+    }
+
+    public void  accessComment(String url) {
+
+    }
+
     protected String excu4Str(CloseableHttpResponse resp) throws IOException {
         return EntityUtils.toString(resp.getEntity());
     }
 
     public void parser(String result) {
     }
+
+
 
 }

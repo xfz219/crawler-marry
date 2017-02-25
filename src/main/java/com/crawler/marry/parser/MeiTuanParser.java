@@ -21,6 +21,7 @@ import org.springframework.web.util.HtmlUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 
 /**
@@ -105,13 +106,22 @@ public class MeiTuanParser extends Parser {
         } else {
             marryInfo.setComment("暂无评价");//评论数
         }
+        marryInfo.setMarryId(UUID.randomUUID().toString());
 
         //  marryInfo.setLevel(elementi.getElementsByClass("irr-star50").attr("title"));//级别
 
         return marryInfo;
     }
 
-    public static void main(String[] args) throws IOException {
+
+
+    @Override
+    public void parserComment(String result) {
+
+        super.parserComment(result);
+    }
+
+    public static void main(String[] args){
 //        CloseableHttpClient client = HttpClientBuilder.create().build();
 //        String url = "http://bj.meituan.com/category/hunshaphoto?mtt=1.index/floornew.nc.112.izdwd5gk";
 //        HttpGet get = new HttpGet(url);

@@ -3,14 +3,9 @@ package com.crawler.marry.parser;
 
 import com.alibaba.fastjson.JSON;
 import com.crawler.marry.model.MarryInfo;
-import com.crawler.marry.parser.factory.ParserFactory;
-import com.crawler.marry.util.MarryContact;
+
 import com.crawler.marry.util.ThreadUtils;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
+import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -18,9 +13,9 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by finup on 2017/2/19.
@@ -80,21 +75,29 @@ public class Wed114Parser extends Parser {
             marryInfo.setPrice(element.getElementsByClass("ismoney").get(0).text().replace("￥","").replace("起",""));
 
         }
+        marryInfo.setMarryId(UUID.randomUUID().toString());
         return marryInfo;
     }
 
+    @Override
+    public void parserComment(String result) {
+        super.parserComment(result);
+    }
+
     public static void main(String[] args) throws IOException {
-        String url = "http://bj.wed114.cn/sheying/";
-        CloseableHttpClient client = HttpClientBuilder.create().build();
-        HttpGet get = new HttpGet(url);
-        CloseableHttpResponse resp = client.execute(get);
-        Wed114Parser meiTuanParser = new Wed114Parser();
 
-        String result = EntityUtils.toString(resp.getEntity());
+        File file = new File("/Users/finup/123.html");
+        String result = FileUtils.readFileToString(file);
+        Document document = Jsoup.parse(result);
+        // 评论
+        Element e = document.getElementsByClass("newchoosebox").get(0);
+        //
+        Element element = document.getElementById("ct_show");
+        Element e1 = element.getElementsByTag("ul").get(0);
+        Elements lis  = e1.getElementsByTag("li");
+        System.out.println(lis.size());
 
-        System.out.println(result);
-        meiTuanParser.parser(result);
-//        ParserFactory.createParser(Wed114Parser.class).accessNext(MarryContact.WED_ST,MarryContact.WED_HOST);
+//        System.out.println(result);
     }
 
 }
