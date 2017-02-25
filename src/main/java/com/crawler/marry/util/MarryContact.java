@@ -14,6 +14,11 @@ public class MarryContact {
     public static final String JIEHUN_HOST = PropertiesUtil.getProps("jiehun.host");
     public static final String MEITUAN_HOST = PropertiesUtil.getProps("meituan.host");
 
+    public static final String WED_ST = PropertiesUtil.getProps("wed.st");
+    public static final String DIANPING_ST = PropertiesUtil.getProps("dianping.st");
+    public static final String JIEHUN_ST = PropertiesUtil.getProps("jiehun.st");
+    public static final String MEITUAN_ST = PropertiesUtil.getProps("meituan.st");
+
 
 
 

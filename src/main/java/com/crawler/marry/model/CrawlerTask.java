@@ -8,49 +8,14 @@ import java.io.Serializable;
 
 public class CrawlerTask implements Serializable {
 
-    private String url;
-    private boolean title = true;
-    private boolean address = true ;
-    private boolean monery = true;
-    private boolean commentNum = true;
 
-    public String getUrl() {
-        return url;
+    private int type;
+
+    public int getType() {
+        return type;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public boolean isTitle() {
-        return title;
-    }
-
-    public void setTitle(boolean title) {
-        this.title = title;
-    }
-
-    public boolean isAddress() {
-        return address;
-    }
-
-    public void setAddress(boolean address) {
-        this.address = address;
-    }
-
-    public boolean isMonery() {
-        return monery;
-    }
-
-    public void setMonery(boolean monery) {
-        this.monery = monery;
-    }
-
-    public boolean isCommentNum() {
-        return commentNum;
-    }
-
-    public void setCommentNum(boolean commentNum) {
-        this.commentNum = commentNum;
+    public void setType(int type) {
+        this.type = type;
     }
 }

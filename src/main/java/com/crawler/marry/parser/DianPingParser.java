@@ -2,6 +2,9 @@ package com.crawler.marry.parser;
 
 import com.alibaba.fastjson.JSON;
 import com.crawler.marry.model.MarryInfo;
+import com.crawler.marry.parser.factory.ParserFactory;
+import com.crawler.marry.util.MarryContact;
+import com.crawler.marry.util.ThreadUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -40,28 +43,28 @@ public class DianPingParser extends Parser {
 
     @Override
     public void parser(String result){
-        List<MarryInfo> list = new ArrayList<>();
         Document document = Jsoup.parse(result);
         Element ul_element = document.getElementsByClass("shop-list").get(0);
         Elements lis_element = ul_element.getElementsByTag("li");
         for (Element li : lis_element) {
             try {
                 if (!li.html().contains("top")){
-                    list.add(parserLi(li));
+                    if(parserLi(li) != null) {
+                        ThreadUtils.queue_dianping.put(parserLi(li));
+                    }
                 }
             }catch (Exception e) {
                 LOG.error("dian ping parser error : " + e.getMessage(),e);
             }
         }
-        System.out.println("===================== : " + JSON.toJSONString(list));
+        System.out.println("dianping data: " + JSON.toJSONString(ThreadUtils.queue_dianping));
     }
 
     private MarryInfo parserLi(Element element) {
-        MarryInfo marryInfo = new MarryInfo();
+        MarryInfo marryInfo = null;
         Elements divs = element.children();
         if (divs.size() == 3) {
-            System.out.println("======================================");
-
+            marryInfo = new MarryInfo();
             marryInfo.setName(element.getElementsByClass("shopname").get(0).text());//标题
             marryInfo.setLevel(element.getElementsByClass("irr-star50").attr("title"));//级别
             marryInfo.setScope(element.getElementsByClass("area-list").text());// 区域
@@ -79,14 +82,20 @@ public class DianPingParser extends Parser {
     }
 
     public static void main(String[] args) throws IOException {
-        CloseableHttpClient client = HttpClientBuilder.create().build();
-        String url = "http://www.dianping.com/search/category/2/55/g163";
-        HttpGet get = new HttpGet(url);
-        CloseableHttpResponse resp = client.execute(get);
-        String result = EntityUtils.toString(resp.getEntity());
-        DianPingParser pingParser = new DianPingParser();
-        String link = pingParser.parserNext(result);
+//        CloseableHttpClient client = HttpClientBuilder.create().build();
+//        String url = "http://www.dianping.com/search/category/2/55/g163";
+//        HttpGet get = new HttpGet(url);
+//        CloseableHttpResponse resp = client.execute(get);
+//        String result = EntityUtils.toString(resp.getEntity());
+//        DianPingParser pingParser = new DianPingParser();
+//        String link = pingParser.parserNext(result);
 //        pingParser.accessNext(HOST+link);
+
+        ThreadUtils.queue_dianping.offer("123");
+        ThreadUtils.queue_dianping.offer("232323");
+
+        System.out.println(JSON.toJSONString(ThreadUtils.queue_dianping));
+        ParserFactory.createParser(DianPingParser.class).accessNext(MarryContact.DIANPING_ST,MarryContact.DIANPING_HOST);
 
 
     }

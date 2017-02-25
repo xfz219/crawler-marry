@@ -24,7 +24,7 @@ public abstract class Parser {
 
     public abstract  String parserNext(String result);
 
-    public  String accessNext(String url,String Host){
+    public String accessNext(String url,String Host){
         try {
             HttpGet get = new HttpGet(url);
             String result = excu4Str(client.execute(get));
