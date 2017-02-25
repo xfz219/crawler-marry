@@ -13,6 +13,7 @@ public class MarryInfo {
     private String type;
     private String level;
     private String hot;
+    private String marryId;
 
     public int getId() {
         return id;
@@ -84,5 +85,13 @@ public class MarryInfo {
 
     public void setHot(String hot) {
         this.hot = hot;
+    }
+
+    public String getMarryId() {
+        return marryId;
+    }
+
+    public void setMarryId(String marryId) {
+        this.marryId = marryId;
     }
 }
