@@ -9,6 +9,8 @@ public class TradeMark {
 
     private String img;
 
+    private String commonId;
+
     private String marryId;
 
     public String getImg() {
@@ -33,5 +35,13 @@ public class TradeMark {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getCommonId() {
+        return commonId;
+    }
+
+    public void setCommonId(String commonId) {
+        this.commonId = commonId;
     }
 }

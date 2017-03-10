@@ -1,14 +1,16 @@
 package com.crawler.marry.parser;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.crawler.marry.model.Comments;
 import com.crawler.marry.model.MarryInfo;
+import com.crawler.marry.model.TradeMark;
 import com.crawler.marry.parser.factory.ParserFactory;
+import com.crawler.marry.util.JdbcUtils;
 import com.crawler.marry.util.MarryContact;
 import com.crawler.marry.util.ThreadUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -16,6 +18,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.util.HtmlUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,6 +35,8 @@ public class DianPingParser extends Parser {
 //    private static final String reg = ".*?target=\\\"_blank\\\">(.*?)封点评.*?";
     private static final String reg = ".*?>([^>]*?)封点评.*?";
 
+
+    String url ="";
 
     public DianPingParser() {
         super();
@@ -52,7 +57,11 @@ public class DianPingParser extends Parser {
             try {
                 if (!li.html().contains("top")){
                     if(parserLi(li) != null) {
-                        ThreadUtils.queue_dianping.put(parserLi(li));
+                        JSONObject json = parserLi(li);
+                        JdbcUtils.save(json);
+                        ThreadUtils.queue_dianping.put(json);
+
+                        System.out.println("=====================================" + json);
                     }
                 }
             }catch (Exception e) {
@@ -62,8 +71,8 @@ public class DianPingParser extends Parser {
         System.out.println("dianping data: " + JSON.toJSONString(ThreadUtils.queue_dianping));
     }
 
-    private MarryInfo parserLi(Element element) {
-        MarryInfo marryInfo = null;
+    private JSONObject parserLi(Element element) {
+        JSONObject json = new JSONObject();
         Elements divs = element.children();
         if (divs.size() == 3) {
             marryInfo = new MarryInfo();
@@ -79,16 +88,167 @@ public class DianPingParser extends Parser {
             if(matcher.find()) {
                 marryInfo.setComment(matcher.group(1));
             }
-
         }
-        return marryInfo;
-    }
+        parserComment(element.toString());
 
+        json.put("MarryInfo",marryInfo);
+        json.put("Comments",listc);
+        return json;
+    }
 
     @Override
     public void parserComment(String result) {
+        Document doc = Jsoup.parse(result);
+        try {
+            Elements as = doc.getElementsByTag("a");
+            String url ="";
+            for(Element a : as){
+                if(a.text().contains("封点评")){
+                    url = a.attr("href");
+                    String shopId = url.split("#")[0].split("/")[2];
+                    url = "http://www.dianping.com/ajax/shop/wedding/reviewlist?_nr_force="+shopId+"&act=getreviewlist&shopid="+shopId+"&tab=all";
+                    break;
+                }
+            }
+            HttpGet get = new HttpGet(url);
+            CloseableHttpResponse resp = client.execute(get);
+            result = EntityUtils.toString(resp.getEntity());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-        super.parserComment(result);
+        JSONObject jsonObject = JSON.parseObject(result);
+        String html = jsonObject.getString("msg");
+        result = HtmlUtils.htmlUnescape(html);
+        if(result.contains("更多点评")){
+            doc = Jsoup.parse(html);
+
+            for(Element a : doc.select("a")){
+                if(a.text().contains("更多点评")){
+                    url = "http://www.dianping.com"+a.attr("href").split("#")[0];
+                }
+            }
+
+            try {
+                HttpGet get = new HttpGet(url);
+                CloseableHttpResponse resp = client.execute(get);
+                result = EntityUtils.toString(resp.getEntity());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            //解析第一页的评论内容
+            doc = Jsoup.parse(result);
+            Elements divs = doc.getElementsByClass("content");
+            for(Element div : divs){
+                Comments comments = new Comments();
+                if(div.toString().contains("comment-entry")){
+                    comments.setContent(div.select(".comment-entry").get(0).text());
+                }
+                if(div.toString().contains("comment-rst")){
+                    comments.setRank(div.select(".comment-rst").get(0).getElementsByTag("span").get(0).attr("class").split(" ")[1]);
+                }
+
+                comments.setMarryId(marryInfo.getMarryId());
+                comments.setCommonId(UUID.randomUUID().toString());
+
+                listc.add(comments);
+                if(div.toString().contains("shop-info-gallery")){
+                    parserImg(comments,div.getElementsByClass("shop-info-gallery").get(0));
+                }
+
+            }
+            //解析剩余内容的评论
+            parserNeatPage(result);
+
+        }else{
+
+            Elements lis = doc.getElementsByClass("comment-list").get(0).select("li");
+            for(Element li : lis){
+               if(li.toString().contains("摄影")){
+                   Comments comments = new Comments();
+                   if(li.select("div").size()>2){
+                       comments.setContent(li.select("div").get(0).text());
+                   }else{
+                       comments.setContent(li.select("div").get(1).text());
+                   }
+                   comments.setRank(li.select("user-info").get(0).getElementsByTag("span").get(1).attr("class").split(" ")[1]);
+                   comments.setMarryId(marryInfo.getMarryId());
+                   comments.setCommonId(UUID.randomUUID().toString());
+
+                   listc.add(comments);
+                   parserImg(comments,li.getElementsByClass("shop-photo").get(0));
+               }
+            }
+        }
+    }
+
+    private void parserNeatPage(String result){
+        Document doc = Jsoup.parse(result);
+        if(doc.toString().contains("下一页")){
+            Elements elements = doc.select("a");
+            //抓取页数
+            for(Element element : elements){
+                if(element.text().contains("下一页")){
+                    page --;
+                    if(page > 0 ){
+                        String url1 = url + element.attr("href");
+                        try {
+                            HttpGet get = new HttpGet(url1);
+                            CloseableHttpResponse resp = client.execute(get);
+                            result = EntityUtils.toString(resp.getEntity());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        doc = Jsoup.parse(result);
+                        Elements divs = doc.getElementsByClass("content");
+                        for(Element div : divs){
+                            Comments comments = new Comments();
+                            if(div.toString().contains("comment-entry")){
+                                comments.setContent(div.select(".comment-entry").get(0).text());
+                            }
+                            if(div.toString().contains("comment-rst")){
+                                comments.setRank(div.select(".comment-rst").get(0).getElementsByTag("span").get(0).attr("class").split(" ")[1]);
+                            }
+                            comments.setMarryId(marryInfo.getMarryId());
+                            comments.setCommonId(UUID.randomUUID().toString());
+
+                            listc.add(comments);
+                            if(div.toString().contains("shop-info-gallery")){
+                                parserImg(comments,div.getElementsByClass("shop-info-gallery").get(0));
+                            }
+                        }
+                        //递归
+                        parserNeatPage(result);
+                    }else{
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    private void parserImg(Comments comments,Element element){
+        List<TradeMark> listt = new ArrayList<TradeMark>();
+        Elements as = element.select("a");
+        if(as == null){
+            System.out.print(comments.getMarryId()+"没有评论照片");
+        }
+
+        for(Element a : as){
+            TradeMark tradeMark = new TradeMark();
+            tradeMark.setImg(a.attr("src"));
+            if(("").equals(a.attr("src"))){
+                tradeMark.setImg(a.attr("data-src"));
+            }
+            tradeMark.setMarryId(comments.getMarryId());
+            tradeMark.setCommonId(comments.getCommonId());
+
+            listt.add(tradeMark);
+        }
+
+        comments.setImgs(listt);
     }
 
     public static void main(String[] args) throws IOException {
@@ -101,12 +261,12 @@ public class DianPingParser extends Parser {
 //        String link = pingParser.parserNext(result);
 //        pingParser.accessNext(HOST+link);
 
-        System.out.println(UUID.randomUUID().toString());
-
-        ThreadUtils.queue_dianping.offer("123");
-        ThreadUtils.queue_dianping.offer("232323");
-
-        System.out.println(JSON.toJSONString(ThreadUtils.queue_dianping));
+        //System.out.println(UUID.randomUUID().toString());
+        //
+        //ThreadUtils.queue_dianping.offer("123");
+        //ThreadUtils.queue_dianping.offer("232323");
+        //
+        //System.out.println(JSON.toJSONString(ThreadUtils.queue_dianping));
         ParserFactory.createParser(DianPingParser.class).accessNext(MarryContact.DIANPING_ST,MarryContact.DIANPING_HOST);
 
 

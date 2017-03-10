@@ -1,14 +1,15 @@
 package com.crawler.marry.parser;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.crawler.marry.model.Comments;
 import com.crawler.marry.model.MarryInfo;
+import com.crawler.marry.model.TradeMark;
 import com.crawler.marry.parser.factory.ParserFactory;
 import com.crawler.marry.util.MarryContact;
 import com.crawler.marry.util.ThreadUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -59,9 +60,10 @@ public class MeiTuanParser extends Parser {
 
         for (int i = 0; i < divsInfo.size(); i++) {
             try {
-                MarryInfo marryInfo = parserDiv(divsInfo.get(i), divsMoney.get(i));
-                if (marryInfo != null){
-                    ThreadUtils.queue_meituan.put(marryInfo);
+                JSONObject json = parserDiv(divsInfo.get(i), divsMoney.get(i));
+                if (json != null){
+                    ThreadUtils.queue_meituan.put(json);
+                    System.out.println("============================== " +json);
             }
             } catch (Exception e) {
                 LOG.error("dian ping parser error : " + e.getMessage(), e);
@@ -95,9 +97,9 @@ public class MeiTuanParser extends Parser {
         return null;
     }
 
-    private MarryInfo parserDiv(Element elementi, Element elementm) {
-        MarryInfo marryInfo = new MarryInfo();
-
+    private JSONObject parserDiv(Element elementi, Element elementm) {
+        JSONObject json = new JSONObject();
+        marryInfo = new MarryInfo();
         marryInfo.setName(elementi.getElementsByClass("J-mtad-link").get(0).text());//标题
         marryInfo.setPrice(elementm.getElementsByClass("price").text());//价格
         marryInfo.setScope(elementi.getElementsByClass("tag").get(1).text());// 区域
@@ -110,15 +112,90 @@ public class MeiTuanParser extends Parser {
 
         //  marryInfo.setLevel(elementi.getElementsByClass("irr-star50").attr("title"));//级别
 
-        return marryInfo;
+        String  url = elementi.select(".rate").get(0).getElementsByTag("a").get(0).attr("href");
+        String result = "";
+        try {
+            HttpGet get = new HttpGet(url);
+            get.setHeader("User-Agent", "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Win64; x64; Trident/4.0; .NET CLR 2.0.50727; SLCC2; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E)");
+            get.setHeader("Host", "bj.meituan.com");
+            get.setHeader("Referer","http://bj.meituan.com/category/hunshaphoto?mtt=1.index%2Ffloornew.nc.109.izdibqb9");
+            get.setHeader("Upgrade-Insecure-Requests", "1");
+            get.setHeader("Accept-Language", "zh-CN,zh;q=0.8");
+            get.setHeader("Accept-Encoding", "gzip, deflate, sdch");
+            get.setHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+            CloseableHttpResponse resp = client.execute(get);
+            result = EntityUtils.toString(resp.getEntity());
+        } catch (IOException es) {
+            es.printStackTrace();
+        }
+        parserComment(result);
+
+        json.put("MarryInfo", marryInfo);
+        json.put("Comments", listc);
+        return json;
     }
-
-
 
     @Override
     public void parserComment(String result) {
+        Document doc = Jsoup.parse(result);
 
-        super.parserComment(result);
+        Elements dls = doc.getElementsByClass("dpone");
+        for (Element dl : dls) {
+            Comments comments = new Comments();
+            comments.setContent(dl.getElementsByClass("m-re-content").get(0).text());
+            comments.setRank(dl.getElementsByClass("g-u m-u-options").get(0).text());
+            comments.setMarryId(marryInfo.getMarryId());
+            comments.setCommonId(UUID.randomUUID().toString());
+
+            listc.add(comments);
+            if (dl.toString().contains("_jdp_pic")) {
+                parserImg(comments, dl.getElementsByClass("_jdp_pic"));
+            }
+        }
+        //下一页
+        if (result.contains("下一页")) {
+            Elements elements = doc.select("a");
+            //抓取页数
+            for (Element element : elements) {
+                if (element.text().contains("下一页")) {
+                    page--;
+                    if (page > 0) {
+                        String url = element.attr("href");
+                        try {
+                            HttpGet get = new HttpGet("http://bj.jiehun.com.cn" + url);
+                            CloseableHttpResponse resp = client.execute(get);
+                            result = EntityUtils.toString(resp.getEntity());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        //递归
+                        parserComment(result);
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+
+    private void parserImg(Comments comments, Elements elements){
+        List<TradeMark> listt = new ArrayList<TradeMark>();
+        if(elements == null){
+            System.out.print(comments.getMarryId()+"没有评论照片");
+        }
+
+        for(Element ele : elements){
+            TradeMark tradeMark = new TradeMark();
+            tradeMark.setImg(ele.select("img").attr("hll"));
+            tradeMark.setMarryId(comments.getMarryId());
+            tradeMark.setCommonId(comments.getCommonId());
+
+            listt.add(tradeMark);
+        }
+
+        comments.setImgs(listt);
     }
 
     public static void main(String[] args){

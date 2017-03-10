@@ -1,5 +1,7 @@
 package com.crawler.marry.parser;
 
+import com.crawler.marry.model.Comments;
+import com.crawler.marry.model.MarryInfo;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -9,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by finup on 2017/2/19.
@@ -20,6 +24,12 @@ public abstract class Parser {
     public   String comment_url = "";
     // 商标url
     public String trademark_url ="";
+    //评论抓取的页数
+    public int page = 5 ;
+
+    public MarryInfo marryInfo = null;
+    public List<Comments> listc = new ArrayList<Comments>();
+
 
     public Parser() {
         System.out.println("parser client");
@@ -50,8 +60,7 @@ public abstract class Parser {
 
     }
 
-    public void parserComment(String result){
-
+    public void parserComment(String  result){
     }
 
     public void  accessComment(String url) {

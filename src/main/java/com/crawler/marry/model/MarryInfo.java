@@ -5,14 +5,14 @@ package com.crawler.marry.model;
  */
 public class MarryInfo {
     private int id;
-    private String name ;
-    private String price;
-    private String comment;
-    private String summary;
-    private String scope;
-    private String type;
-    private String level;
-    private String hot;
+    private String name ;//名字
+    private String price;//价格
+    private String comment;//评论
+    private String summary;//摘要
+    private String scope;//地区
+    private String type;//类型
+    private String level;//星级
+    private String hot;//人气
     private String marryId;
 
     public int getId() {

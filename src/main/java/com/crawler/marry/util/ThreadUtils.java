@@ -13,6 +13,9 @@ public class ThreadUtils {
     public static LinkedBlockingQueue queue_wed = new LinkedBlockingQueue();
     public static LinkedBlockingQueue queue_meituan = new LinkedBlockingQueue();
     public static LinkedBlockingQueue queue_jiehun = new LinkedBlockingQueue();
+
+
+    public static LinkedBlockingQueue queue = new LinkedBlockingQueue();
     public static String STOP = "1";
 
 }

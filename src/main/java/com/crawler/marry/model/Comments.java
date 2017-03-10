@@ -1,5 +1,7 @@
 package com.crawler.marry.model;
 
+import java.util.List;
+
 /**
  * Created by finup on 2017/2/25.
  */
@@ -12,9 +14,9 @@ public class Comments {
      */
     private String content;
     /**
-     * 评论图片地址
+     * 评论id
      */
-    private String imgUrl;
+    private String commonId;
     /**
      *  评论等级
      */
@@ -24,20 +26,14 @@ public class Comments {
      */
     private String marryId;
 
+    private List<TradeMark> imgs;
+
     public String getContent() {
         return content;
     }
 
     public void setContent(String content) {
         this.content = content;
-    }
-
-    public String getImgUrl() {
-        return imgUrl;
-    }
-
-    public void setImgUrl(String imgUrl) {
-        this.imgUrl = imgUrl;
     }
 
     public String getRank() {
@@ -62,5 +58,21 @@ public class Comments {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getCommonId() {
+        return commonId;
+    }
+
+    public void setCommonId(String commonId) {
+        this.commonId = commonId;
+    }
+
+    public List<TradeMark> getImgs() {
+        return imgs;
+    }
+
+    public void setImgs(List<TradeMark> imgs) {
+        this.imgs = imgs;
     }
 }
