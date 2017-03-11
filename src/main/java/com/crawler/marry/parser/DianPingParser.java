@@ -58,8 +58,8 @@ public class DianPingParser extends Parser {
                 if (!li.html().contains("top")){
                     if(parserLi(li) != null) {
                         JSONObject json = parserLi(li);
-                        JdbcUtils.save(json);
-                        ThreadUtils.queue_dianping.put(json);
+//                        JdbcUtils.save(json);
+//                        ThreadUtils.queue_dianping.put(json);
 
                         System.out.println("=====================================" + json);
                     }
@@ -89,15 +89,21 @@ public class DianPingParser extends Parser {
                 marryInfo.setComment(matcher.group(1));
             }
         }
-        parserComment(element.toString());
+        try {
 
-        json.put("MarryInfo",marryInfo);
-        json.put("Comments",listc);
+            ThreadUtils.queue.put(marryInfo);
+            parserComment(element.toString());
+        } catch (Exception e) {
+
+        }
+//
+//        json.put("MarryInfo",marryInfo);
+//        json.put("Comments",listc);
         return json;
     }
 
     @Override
-    public void parserComment(String result) {
+    public void parserComment(String result) throws InterruptedException {
         Document doc = Jsoup.parse(result);
         try {
             Elements as = doc.getElementsByTag("a");
@@ -151,8 +157,8 @@ public class DianPingParser extends Parser {
 
                 comments.setMarryId(marryInfo.getMarryId());
                 comments.setCommonId(UUID.randomUUID().toString());
-
-                listc.add(comments);
+                ThreadUtils.queue_comment.put(comments);
+//                listc.add(comments);
                 if(div.toString().contains("shop-info-gallery")){
                     parserImg(comments,div.getElementsByClass("shop-info-gallery").get(0));
                 }
@@ -175,15 +181,15 @@ public class DianPingParser extends Parser {
                    comments.setRank(li.select("user-info").get(0).getElementsByTag("span").get(1).attr("class").split(" ")[1]);
                    comments.setMarryId(marryInfo.getMarryId());
                    comments.setCommonId(UUID.randomUUID().toString());
-
-                   listc.add(comments);
+                    ThreadUtils.queue_comment.put(comments);
+//                   listc.add(comments);
                    parserImg(comments,li.getElementsByClass("shop-photo").get(0));
                }
             }
         }
     }
 
-    private void parserNeatPage(String result){
+    private void parserNeatPage(String result) throws InterruptedException {
         Document doc = Jsoup.parse(result);
         if(doc.toString().contains("下一页")){
             Elements elements = doc.select("a");
@@ -213,8 +219,8 @@ public class DianPingParser extends Parser {
                             }
                             comments.setMarryId(marryInfo.getMarryId());
                             comments.setCommonId(UUID.randomUUID().toString());
+                            ThreadUtils.queue_comment.add(comments);
 
-                            listc.add(comments);
                             if(div.toString().contains("shop-info-gallery")){
                                 parserImg(comments,div.getElementsByClass("shop-info-gallery").get(0));
                             }
@@ -229,7 +235,7 @@ public class DianPingParser extends Parser {
         }
     }
 
-    private void parserImg(Comments comments,Element element){
+    private void parserImg(Comments comments,Element element) throws InterruptedException {
         List<TradeMark> listt = new ArrayList<TradeMark>();
         Elements as = element.select("a");
         if(as == null){
@@ -244,8 +250,8 @@ public class DianPingParser extends Parser {
             }
             tradeMark.setMarryId(comments.getMarryId());
             tradeMark.setCommonId(comments.getCommonId());
-
-            listt.add(tradeMark);
+            ThreadUtils.queue_trademark.put(tradeMark);
+//            listt.add(tradeMark);
         }
 
         comments.setImgs(listt);

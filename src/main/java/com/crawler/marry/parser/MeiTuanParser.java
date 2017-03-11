@@ -62,7 +62,7 @@ public class MeiTuanParser extends Parser {
             try {
                 JSONObject json = parserDiv(divsInfo.get(i), divsMoney.get(i));
                 if (json != null){
-                    ThreadUtils.queue_meituan.put(json);
+//                    ThreadUtils.queue.put(json);
                     System.out.println("============================== " +json);
             }
             } catch (Exception e) {
@@ -115,6 +115,7 @@ public class MeiTuanParser extends Parser {
         String  url = elementi.select(".rate").get(0).getElementsByTag("a").get(0).attr("href");
         String result = "";
         try {
+            ThreadUtils.queue.put(marryInfo);
             HttpGet get = new HttpGet(url);
             get.setHeader("User-Agent", "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Win64; x64; Trident/4.0; .NET CLR 2.0.50727; SLCC2; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E)");
             get.setHeader("Host", "bj.meituan.com");
@@ -125,10 +126,10 @@ public class MeiTuanParser extends Parser {
             get.setHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
             CloseableHttpResponse resp = client.execute(get);
             result = EntityUtils.toString(resp.getEntity());
-        } catch (IOException es) {
+            parserComment(result);
+        } catch (Exception es) {
             es.printStackTrace();
         }
-        parserComment(result);
 
         json.put("MarryInfo", marryInfo);
         json.put("Comments", listc);
@@ -136,7 +137,7 @@ public class MeiTuanParser extends Parser {
     }
 
     @Override
-    public void parserComment(String result) {
+    public void parserComment(String result) throws InterruptedException {
         Document doc = Jsoup.parse(result);
 
         Elements dls = doc.getElementsByClass("dpone");
@@ -146,7 +147,7 @@ public class MeiTuanParser extends Parser {
             comments.setRank(dl.getElementsByClass("g-u m-u-options").get(0).text());
             comments.setMarryId(marryInfo.getMarryId());
             comments.setCommonId(UUID.randomUUID().toString());
-
+            ThreadUtils.queue_comment.put(comments);
             listc.add(comments);
             if (dl.toString().contains("_jdp_pic")) {
                 parserImg(comments, dl.getElementsByClass("_jdp_pic"));
@@ -180,7 +181,7 @@ public class MeiTuanParser extends Parser {
     }
 
 
-    private void parserImg(Comments comments, Elements elements){
+    private void parserImg(Comments comments, Elements elements) throws InterruptedException {
         List<TradeMark> listt = new ArrayList<TradeMark>();
         if(elements == null){
             System.out.print(comments.getMarryId()+"没有评论照片");
@@ -191,7 +192,7 @@ public class MeiTuanParser extends Parser {
             tradeMark.setImg(ele.select("img").attr("hll"));
             tradeMark.setMarryId(comments.getMarryId());
             tradeMark.setCommonId(comments.getCommonId());
-
+            ThreadUtils.queue_trademark.put(tradeMark);
             listt.add(tradeMark);
         }
 

@@ -53,8 +53,8 @@ public class JieHunParser extends Parser {
 
                 JSONObject json = parserLi(e);
                 if (marryInfo != null)
-                    JdbcUtils.save(json);
-                    ThreadUtils.queue_jiehun.put(json);
+//                    JdbcUtils.save(json);
+//                    ThreadUtils.queue_jiehun.put(json);
                 System.out.println("===========================" + json);
             } catch (Exception es) {
                 es.printStackTrace();
@@ -81,17 +81,18 @@ public class JieHunParser extends Parser {
         Element ele = e.getElementsByClass("count").get(0);
         String result = "";
         try {
+            ThreadUtils.queue.put(marryInfo);
             String url = "http://bj.jiehun.com.cn" + ele.getElementsByTag("a").attr("href");
             HttpGet get = new HttpGet(url);
             CloseableHttpResponse resp = client.execute(get);
             result = EntityUtils.toString(resp.getEntity());
-        } catch (IOException es) {
+        } catch (Exception es) {
             es.printStackTrace();
         }
         parserComment(result);
-
-        json.put("MarryInfo", marryInfo);
-        json.put("Comments", listc);
+//
+//        json.put("MarryInfo", marryInfo);
+//        json.put("Comments", listc);
         return json;
     }
 
@@ -108,7 +109,8 @@ public class JieHunParser extends Parser {
                comments.setMarryId(marryInfo.getMarryId());
                comments.setCommonId(UUID.randomUUID().toString());
 
-               listc.add(comments);
+               ThreadUtils.queue_comment.put(comments);
+//               listc.add(comments);
 
                if (dl.toString().contains("_jdp_pic")) {
                    parserImg(comments, dl.getElementsByClass("_jdp_pic"));
@@ -147,7 +149,7 @@ public class JieHunParser extends Parser {
     }
 
 
-    private void parserImg(Comments comments, Elements elements){
+    private void parserImg(Comments comments, Elements elements) throws InterruptedException {
         List<TradeMark> listt = new ArrayList<TradeMark>();
         if(elements == null){
             System.out.print(comments.getMarryId()+"没有评论照片");
@@ -158,8 +160,8 @@ public class JieHunParser extends Parser {
             tradeMark.setImg(ele.select("img").attr("hll"));
             tradeMark.setMarryId(comments.getMarryId());
             tradeMark.setCommonId(comments.getCommonId());
-
-            listt.add(tradeMark);
+            ThreadUtils.queue_trademark.put(tradeMark);
+//            listt.add(tradeMark);
         }
 
         comments.setImgs(listt);

@@ -60,7 +60,7 @@ public abstract class Parser {
 
     }
 
-    public void parserComment(String  result){
+    public void parserComment(String  result) throws InterruptedException {
     }
 
     public void  accessComment(String url) {

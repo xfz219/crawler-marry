@@ -59,7 +59,7 @@ public class Wed114Parser extends Parser {
                 JSONObject jsonObject = parserDiv(div);
                 if (jsonObject !=null ) {
                     System.out.println("================================================" +jsonObject);
-                    ThreadUtils.queue_wed.put(jsonObject);
+//                    ThreadUtils.queue_wed.put(jsonObject);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -85,16 +85,21 @@ public class Wed114Parser extends Parser {
         }
         marryInfo.setMarryId(UUID.randomUUID().toString());
 
-        Element ele = element.getElementsByClass("sheyinlogo").get(0);
-        parserComment(ele.toString());
+        try {
+            ThreadUtils.queue.put(marryInfo);
+            Element ele = element.getElementsByClass("sheyinlogo").get(0);
+            parserComment(ele.toString());
+        }catch (Exception e) {
 
-        json.put("MarryInfo",marryInfo);
-        json.put("Comments",listc);
+        }
+//
+//        json.put("MarryInfo",marryInfo);
+//        json.put("Comments",listc);
         return json;
     }
 
     @Override
-    public void parserComment(String result) {
+    public void parserComment(String result) throws InterruptedException {
         Document doc = Jsoup.parse(result);
         try {
             String url = doc.getElementsByTag("a").attr("href");
@@ -124,12 +129,12 @@ public class Wed114Parser extends Parser {
                 comments.setRank(dd.getElementsByTag("span").get(1).attr("class").split(" ")[0]);
                 comments.setMarryId(marryInfo.getMarryId());
                 comments.setCommonId(UUID.randomUUID().toString());
-
-                listc.add(comments);
+                ThreadUtils.queue_comment.put(comments);
+//                listc.add(comments);
                 parserImg(comments,dd.getElementsByClass("ctimg"));
+                parserNeatPage(result);
             }
             //解析剩余内容的评论
-           parserNeatPage(result);
 
         }else{
             Elements lis = doc.getElementById("ct_show").select("li");
@@ -139,14 +144,14 @@ public class Wed114Parser extends Parser {
                 comments.setRank(li.select("shotscore").get(0).getElementsByTag("span").get(1).attr("class").split(" ")[0]);
                 comments.setMarryId(marryInfo.getMarryId());
                 comments.setCommonId(UUID.randomUUID().toString());
-
-                listc.add(comments);
+                ThreadUtils.queue_comment.put(comments);
+//                listc.add(comments);
                 parserImg(comments,li.getElementsByClass("ctimg"));
             }
         }
     }
 
-    private void parserNeatPage(String result){
+    private void parserNeatPage(String result) throws InterruptedException {
         Document doc = Jsoup.parse(result);
         if(doc.toString().contains("下一页")){
             Elements elements = doc.select("a");
@@ -172,8 +177,8 @@ public class Wed114Parser extends Parser {
                             comments.setRank(dd.getElementsByTag("span").get(1).attr("class").split(" ")[0]);
                             comments.setMarryId(marryInfo.getMarryId());
                             comments.setCommonId(UUID.randomUUID().toString());
-
-                            listc.add(comments);
+                            ThreadUtils.queue_comment.put(comments);
+//                            listc.add(comments);
                             parserImg(comments,dd.getElementsByClass("ctimg"));
                         }
                         //递归
@@ -186,7 +191,7 @@ public class Wed114Parser extends Parser {
         }
     }
 
-    private void parserImg(Comments comments,Elements elements){
+    private void parserImg(Comments comments,Elements elements) throws InterruptedException {
         List<TradeMark> listt = new ArrayList<TradeMark>();
         if(elements == null){
             System.out.print(comments.getMarryId()+"没有评论照片");
@@ -197,8 +202,8 @@ public class Wed114Parser extends Parser {
             tradeMark.setImg(ele.select("img").attr("src"));
             tradeMark.setMarryId(comments.getMarryId());
             tradeMark.setCommonId(comments.getCommonId());
-
-            listt.add(tradeMark);
+            ThreadUtils.queue_trademark.put(tradeMark);
+//            listt.add(tradeMark);
         }
 
         comments.setImgs(listt);
