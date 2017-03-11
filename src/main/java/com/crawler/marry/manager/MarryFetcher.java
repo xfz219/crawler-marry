@@ -7,6 +7,7 @@ import com.crawler.marry.parser.factory.ParserFactory;
 import com.crawler.marry.storm.WedStorm;
 import com.crawler.marry.util.MarryContact;
 import com.crawler.marry.util.ThreadUtils;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.helper.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.*;
@@ -27,18 +29,18 @@ public class MarryFetcher {
     @Resource
     private WedStorm wedStorm;
 
-    public void fetcher(String type) throws InterruptedException {
-        LinkedBlockingQueue queue = new LinkedBlockingQueue();
+    public String fetcher(String type) throws InterruptedException {
+       List<MarryFetcherCallable> str  = new ArrayList<>();
         if (StringUtils.isBlank(type)) {
-            return;
+            return "";
         }
         String [] tasks = type.split(",");
         for (String task : tasks) {
-            queue.add(new MarryFetcherCallable(task));
+            str.add(new MarryFetcherCallable(task));
         }
-        List<Future<String>> futures = ThreadUtils.executorService.invokeAll(queue);
+        List<Future<String>> futures = ThreadUtils.executorService.invokeAll(str);
         ThreadUtils.executorService.submit(new FinishedRunnable(futures));
-        wedStorm.insert();
+        return wedStorm.insert();
     }
 
 
@@ -51,15 +53,16 @@ public class MarryFetcher {
 
         @Override
         public String call() throws Exception {
+//            String type = crawlerTask.poll().toString();
+            System.out.println(crawlerTask);
             String result = "1";
             switch (crawlerTask) {
                 case "1":
                     ParserFactory.createParser(DianPingParser.class).accessNext(MarryContact.DIANPING_ST, MarryContact.DIANPING_HOST);
                     break;
-//                case "2":
-//                    ParserFactory.createParser(JieHunParser.class).accessNext(MarryContact.JIEHUN_ST, MarryContact.JIEHUN_HOST);
-//                    break;
-
+                case "2":
+                    ParserFactory.createParser(JieHunParser.class).accessNext(MarryContact.JIEHUN_ST, MarryContact.JIEHUN_HOST);
+                    break;
                 case "3":
                     ParserFactory.createParser(MeiTuanParser.class).accessNext(MarryContact.MEITUAN_ST, MarryContact.MEITUAN_HOST);
                     break;
@@ -98,17 +101,15 @@ public class MarryFetcher {
 
         }
     }
-
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        String type="1,2,3,4";
         LinkedBlockingQueue queue = new LinkedBlockingQueue();
-        queue.offer("123");
-        queue.offer("123131");
 
-        System.out.println(JSON.toJSONString(queue.poll()));
-        System.out.println(JSON.toJSONString(queue.poll()));
-
-        System.out.println(JSON.toJSONString(queue));
-
+        String [] tasks = type.split(",");
+        List<MarryFetcherCallable> list = new ArrayList<>();
+        for (String task : tasks) {
+            queue.put(task);
+        }
     }
 
 }
