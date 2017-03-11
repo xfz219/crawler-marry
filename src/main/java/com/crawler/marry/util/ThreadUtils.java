@@ -1,5 +1,9 @@
 package com.crawler.marry.util;
 
+import com.crawler.marry.model.Comments;
+import com.crawler.marry.model.MarryInfo;
+import com.crawler.marry.model.TradeMark;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -15,7 +19,9 @@ public class ThreadUtils {
     public static LinkedBlockingQueue queue_jiehun = new LinkedBlockingQueue();
 
 
-    public static LinkedBlockingQueue queue = new LinkedBlockingQueue();
+    public static LinkedBlockingQueue<MarryInfo> queue = new LinkedBlockingQueue();
+    public static LinkedBlockingQueue<Comments> queue_comment = new LinkedBlockingQueue();
+    public static LinkedBlockingQueue<TradeMark> queue_trademark = new LinkedBlockingQueue();
     public static String STOP = "1";
 
 }
