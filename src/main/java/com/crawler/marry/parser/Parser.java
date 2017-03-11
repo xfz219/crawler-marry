@@ -2,6 +2,7 @@ package com.crawler.marry.parser;
 
 import com.crawler.marry.model.Comments;
 import com.crawler.marry.model.MarryInfo;
+import org.apache.commons.codec.binary.StringUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -43,8 +44,8 @@ public abstract class Parser {
             HttpGet get = new HttpGet(url);
             String result = excu4Str(client.execute(get));
             this.parser(result);
-
-            if (result.contains("下一页")) {
+            url = parserNext(result);
+            if (result.contains("下一页") && org.apache.commons.lang3.StringUtils.isNotBlank(url)) {
                 url = Host + parserNext(result);
                 System.out.println(url);
                 Thread.sleep(1000);

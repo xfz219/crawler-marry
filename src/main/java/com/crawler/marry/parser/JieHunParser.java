@@ -36,9 +36,14 @@ public class JieHunParser extends Parser {
 
     @Override
     public String parserNext(String result) {
-        return Jsoup.parse(result).getElementsByClass("pager").get(0).
-                getElementsByClass("n").get(0).
-                getElementsByTag("a").get(0).attr("href");
+         Element e=  Jsoup.parse(result).getElementsByClass("pager").get(0).
+                getElementsByClass("n").get(0);
+
+        if (!e.getElementsByTag("a").isEmpty()){
+         return e.getElementsByTag("a").get(0).attr("href");
+        }
+
+        return "";
 
     }
 
@@ -77,7 +82,7 @@ public class JieHunParser extends Parser {
             }
             marryInfo.setMarryId(UUID.randomUUID().toString());
         }
-        System.out.println(e.html());
+
         if (e.getElementsByClass("count").size() > 0) {
             Element ele = e.getElementsByClass("count").get(0);
             String result = "";
@@ -103,47 +108,51 @@ public class JieHunParser extends Parser {
         Document doc = Jsoup.parse(result);
 
         Elements dls = doc.getElementsByClass("dpone");
-        for (Element dl : dls) {
-           try{
-               Comments comments = new Comments();
-               comments.setContent(dl.getElementsByClass("m-re-content").get(0).text());
-               comments.setRank(dl.getElementsByClass("g-um-u-options").get(0).text());
-               comments.setMarryId(marryInfo.getMarryId());
-               comments.setCommonId(UUID.randomUUID().toString());
+        if (dls!= null && !dls.isEmpty()) {
+            for (Element dl : dls) {
+                try {
+                    Comments comments = new Comments();
+                    comments.setContent(dl.getElementsByClass("m-re-content").get(0).text());
+                    if (!dl.getElementsByClass("g-um-u-options").isEmpty()) {
+                        comments.setRank(dl.getElementsByClass("g-um-u-options").get(0).text());
+                    }
 
-               ThreadUtils.queue_comment.put(comments);
-//               listc.add(comments);
+                    comments.setMarryId(marryInfo.getMarryId());
+                    comments.setCommonId(UUID.randomUUID().toString());
+                    System.out.println("json： " + JSON.toJSONString(comments));
+                    ThreadUtils.queue_comment.put(comments);
 
-               if (dl.toString().contains("_jdp_pic")) {
-                   parserImg(comments, dl.getElementsByClass("_jdp_pic"));
-               }
+                    if (dl.toString().contains("_jdp_pic")) {
+                        parserImg(comments, dl.getElementsByClass("_jdp_pic"));
+                    }
 
-           }catch (Exception e){
-                System.out.print("解析出现异常");
-           }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
-        }
-        //下一页
-        if (result.contains("下一页")) {
-            Elements elements = doc.select("a");
-            //抓取页数
-            for (Element element : elements) {
-                if (element.text().contains("下一页")) {
-                    page--;
-                    if (page > 0) {
-                        String url = element.attr("href");
-                        try {
-                            HttpGet get = new HttpGet("http://bj.jiehun.com.cn" + url);
-                            CloseableHttpResponse resp = client.execute(get);
-                            result = EntityUtils.toString(resp.getEntity());
-                        } catch (IOException e) {
-                            e.printStackTrace();
+            }
+            //下一页
+            if (result.contains("下一页")) {
+                Elements elements = doc.select("a");
+                //抓取页数
+                for (Element element : elements) {
+                    if (element.text().contains("下一页")) {
+                        page--;
+                        if (page > 0) {
+                            String url = element.attr("href");
+                            try {
+                                HttpGet get = new HttpGet("http://bj.jiehun.com.cn" + url);
+                                CloseableHttpResponse resp = client.execute(get);
+                                result = EntityUtils.toString(resp.getEntity());
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
+                            //递归
+                            parserComment(result);
+                        } else {
+                            break;
                         }
-
-                        //递归
-                        parserComment(result);
-                    } else {
-                        break;
                     }
                 }
             }
