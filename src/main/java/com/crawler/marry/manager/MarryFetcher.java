@@ -37,8 +37,8 @@ public class MarryFetcher {
             queue.add(new MarryFetcherCallable(task));
         }
         List<Future<String>> futures = ThreadUtils.executorService.invokeAll(queue);
-        wedStorm.insert();
         ThreadUtils.executorService.submit(new FinishedRunnable(futures));
+        wedStorm.insert();
     }
 
 
@@ -56,9 +56,9 @@ public class MarryFetcher {
                 case "1":
                     ParserFactory.createParser(DianPingParser.class).accessNext(MarryContact.DIANPING_ST, MarryContact.DIANPING_HOST);
                     break;
-                case "2":
-                    ParserFactory.createParser(JieHunParser.class).accessNext(MarryContact.JIEHUN_ST, MarryContact.JIEHUN_HOST);
-                    break;
+//                case "2":
+//                    ParserFactory.createParser(JieHunParser.class).accessNext(MarryContact.JIEHUN_ST, MarryContact.JIEHUN_HOST);
+//                    break;
 
                 case "3":
                     ParserFactory.createParser(MeiTuanParser.class).accessNext(MarryContact.MEITUAN_ST, MarryContact.MEITUAN_HOST);

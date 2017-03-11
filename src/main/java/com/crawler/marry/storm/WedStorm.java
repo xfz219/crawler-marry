@@ -31,8 +31,8 @@ public class WedStorm {
             System.out.println("≈≈≈≈≈≈≈≈≈    start pull data ≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈");
 
             while (true) {
-                Thread.sleep(WAIT_TIME);
-
+//                Thread.sleep(WAIT_TIME);
+                System.out.println(1111);
                 if (!ThreadUtils.queue_trademark.isEmpty()&& ThreadUtils.queue_trademark.size() == 10) {
                     List<TradeMark> list = new ArrayList<>();
                     for (int i = 0; i < 9; i++) {

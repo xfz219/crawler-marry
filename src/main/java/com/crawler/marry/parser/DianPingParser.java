@@ -61,14 +61,14 @@ public class DianPingParser extends Parser {
 //                        JdbcUtils.save(json);
 //                        ThreadUtils.queue_dianping.put(json);
 
-                        System.out.println("=====================================" + json);
+//                        System.out.println("=====================================" + json);
                     }
                 }
             }catch (Exception e) {
                 LOG.error("dian ping parser error : " + e.getMessage(),e);
             }
         }
-        System.out.println("dianping data: " + JSON.toJSONString(ThreadUtils.queue_dianping));
+//        System.out.println("dianping data: " + JSON.toJSONString(ThreadUtils.queue_dianping));
     }
 
     private JSONObject parserLi(Element element) {
@@ -117,6 +117,7 @@ public class DianPingParser extends Parser {
                 }
             }
             HttpGet get = new HttpGet(url);
+            System.out.println("点评url :" + url);
             CloseableHttpResponse resp = client.execute(get);
             result = EntityUtils.toString(resp.getEntity());
         } catch (IOException e) {

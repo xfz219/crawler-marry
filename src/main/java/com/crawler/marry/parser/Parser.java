@@ -48,12 +48,15 @@ public abstract class Parser {
                 url = Host + parserNext(result);
                 System.out.println(url);
                 Thread.sleep(1000);
+                if (url.contains("jiehun")) {
+                    Thread.sleep(3000);
+                }
                 accessNext(url,Host);
             }
         } catch (Exception e) {
             LOG.error("accessNext error ：" + e.getMessage(),e);
         }
-        return null;
+        return "1";
     }
 
     public void process(){

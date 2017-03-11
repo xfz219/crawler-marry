@@ -61,16 +61,16 @@ public class MeiTuanParser extends Parser {
         for (int i = 0; i < divsInfo.size(); i++) {
             try {
                 JSONObject json = parserDiv(divsInfo.get(i), divsMoney.get(i));
-                if (json != null){
-//                    ThreadUtils.queue.put(json);
-                    System.out.println("============================== " +json);
-            }
+//                if (json != null){
+////                    ThreadUtils.queue.put(json);
+//                    System.out.println("============================== " +json);
+//            }
             } catch (Exception e) {
                 LOG.error("dian ping parser error : " + e.getMessage(), e);
             }
         }
 
-        System.out.println("meituan data: " + JSON.toJSONString(ThreadUtils.queue_meituan));
+//        System.out.println("meituan data: " + JSON.toJSONString(ThreadUtils.queue_meituan));
     }
 
     @Override

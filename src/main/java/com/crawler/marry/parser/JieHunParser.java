@@ -52,16 +52,16 @@ public class JieHunParser extends Parser {
             try {
 
                 JSONObject json = parserLi(e);
-                if (marryInfo != null)
-//                    JdbcUtils.save(json);
-//                    ThreadUtils.queue_jiehun.put(json);
-                System.out.println("===========================" + json);
+//                if (marryInfo != null)
+////                    JdbcUtils.save(json);
+////                    ThreadUtils.queue_jiehun.put(json);
+//                System.out.println("===========================" + json);
             } catch (Exception es) {
                 es.printStackTrace();
             }
 
         }
-        System.out.println("jiehun data: " + JSON.toJSONString(ThreadUtils.queue_jiehun));
+//        System.out.println("jiehun data: " + JSON.toJSONString(ThreadUtils.queue_jiehun));
     }
 
     private JSONObject parserLi(Element e) {
@@ -77,19 +77,21 @@ public class JieHunParser extends Parser {
             }
             marryInfo.setMarryId(UUID.randomUUID().toString());
         }
-
-        Element ele = e.getElementsByClass("count").get(0);
-        String result = "";
-        try {
-            ThreadUtils.queue.put(marryInfo);
-            String url = "http://bj.jiehun.com.cn" + ele.getElementsByTag("a").attr("href");
-            HttpGet get = new HttpGet(url);
-            CloseableHttpResponse resp = client.execute(get);
-            result = EntityUtils.toString(resp.getEntity());
-        } catch (Exception es) {
-            es.printStackTrace();
+        System.out.println(e.html());
+        if (e.getElementsByClass("count").size() > 0) {
+            Element ele = e.getElementsByClass("count").get(0);
+            String result = "";
+            try {
+                ThreadUtils.queue.put(marryInfo);
+                String url = "http://bj.jiehun.com.cn" + ele.getElementsByTag("a").attr("href");
+                HttpGet get = new HttpGet(url);
+                CloseableHttpResponse resp = client.execute(get);
+                result = EntityUtils.toString(resp.getEntity());
+            } catch (Exception es) {
+                es.printStackTrace();
+            }
+            parserComment(result);
         }
-        parserComment(result);
 //
 //        json.put("MarryInfo", marryInfo);
 //        json.put("Comments", listc);

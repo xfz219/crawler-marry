@@ -57,16 +57,16 @@ public class Wed114Parser extends Parser {
         for (Element div : divs) {
             try {
                 JSONObject jsonObject = parserDiv(div);
-                if (jsonObject !=null ) {
-                    System.out.println("================================================" +jsonObject);
-//                    ThreadUtils.queue_wed.put(jsonObject);
-                }
+//                if (jsonObject !=null ) {
+//                    System.out.println("================================================" +jsonObject);
+////                    ThreadUtils.queue_wed.put(jsonObject);
+//                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
-        System.out.println("wed Data: " + JSON.toJSONString(ThreadUtils.queue_wed));
+//        System.out.println("wed Data: " + JSON.toJSONString(ThreadUtils.queue_wed));
     }
 
     private JSONObject parserDiv(Element element) {
@@ -80,7 +80,7 @@ public class Wed114Parser extends Parser {
             marryInfo.setHot(element.getElementsByClass("renqi").get(0).text().replace("人气",""));
             marryInfo.setName(element.getElementsByClass("inshoptit").get(0).text());
             marryInfo.setScope(element.getElementsByClass("inaddtxt").get(0).text());
-            marryInfo.setPrice(element.getElementsByClass("ismoney").get(0).text().replace("￥","").replace("起",""));
+//            marryInfo.setPrice(element.getElementsByClass("ismoney").get(0).text().replace("￥","").replace("起",""));
 
         }
         marryInfo.setMarryId(UUID.randomUUID().toString());
