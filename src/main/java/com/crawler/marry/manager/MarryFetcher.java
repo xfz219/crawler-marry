@@ -43,7 +43,6 @@ public class MarryFetcher {
         return wedStorm.insert();
     }
 
-
     public final class MarryFetcherCallable implements Callable<String> {
         private String crawlerTask;
 
