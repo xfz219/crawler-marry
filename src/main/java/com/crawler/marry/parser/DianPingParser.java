@@ -45,6 +45,9 @@ public class DianPingParser extends Parser {
 
     @Override
     public String parserNext(String result) {
+        if (Jsoup.parse(result).getElementsByClass("NextPage").isEmpty()) {
+            return "";
+        }
         return Jsoup.parse(result).getElementsByClass("NextPage").get(0).attr("href");
     }
 
